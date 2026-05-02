@@ -19,7 +19,7 @@ pnpm install
 pnpm build
 ```
 
-Then in Chrome:
+Then in Chrome, Edge or Chromium-based browsers:
 
 1. Open `chrome://extensions`
 2. Enable **Developer mode** (top-right)

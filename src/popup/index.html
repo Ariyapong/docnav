@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>docnav</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <div class="brand">
+        <span class="dot"></span>
+        <span class="brand-name">docnav</span>
+      </div>
+      <span class="version" id="version"></span>
+    </header>
+
+    <section class="row">
+      <div class="row-label">
+        <strong id="host">…</strong>
+        <span class="row-sub">Active on this site</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="enabled" />
+        <span class="slider"></span>
+      </label>
+    </section>
+
+    <section class="row theme-row">
+      <div class="row-label">
+        <strong>Theme</strong>
+        <span class="row-sub">Applies everywhere docnav runs</span>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Theme">
+        <button type="button" class="seg-btn" data-theme="system" role="radio" aria-checked="false">System</button>
+        <button type="button" class="seg-btn" data-theme="light" role="radio" aria-checked="false">Light</button>
+        <button type="button" class="seg-btn" data-theme="dark" role="radio" aria-checked="false">Dark</button>
+      </div>
+    </section>
+
+    <section class="shortcuts">
+      <div class="shortcut">
+        <span class="key">⌘⇧K</span>
+        <span class="desc">Open command palette</span>
+      </div>
+      <div class="shortcut">
+        <span class="key">⌘⇧O</span>
+        <span class="desc">Toggle outline panel</span>
+      </div>
+    </section>
+
+    <section class="recent">
+      <div class="recent-head">
+        <span>Recent doc pages</span>
+        <button id="clear" type="button">clear</button>
+      </div>
+      <ul class="recent-list" id="recent-list"></ul>
+    </section>
+
+    <footer class="foot">
+      <a href="#" id="open-shortcuts">Customize hotkeys</a>
+    </footer>
+
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "docnav",
+  "version": "0.1.0",
+  "description": "A Cmd+K command palette and sticky outline for any documentation site.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "pnpm gen:icons && tsc --noEmit && vite build",
+    "type-check": "tsc --noEmit",
+    "gen:icons": "node scripts/build-icons.mjs"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "2.0.0-beta.28",
+    "@types/chrome": "^0.0.287",
+    "sharp": "^0.33.5",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7"
+  },
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
+  }
+}

@@ -81,6 +81,25 @@ public/icons/icon.svg      source icon — `pnpm gen:icons` rebuilds PNGs
 scripts/build-icons.mjs    SVG → PNG (16/32/48/128) via sharp
 ```
 
+## Releasing
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please) and the Chrome Web Store CLI.
+
+1. Land work on `main` using [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.). `feat:` bumps minor, `fix:` bumps patch, `feat!:` / `BREAKING CHANGE:` bumps major.
+2. release-please opens (and keeps updating) a **Release PR** that bumps `package.json` and regenerates `CHANGELOG.md`. The manifest version is read from `package.json`, so it bumps automatically.
+3. Merging the Release PR tags `vX.Y.Z` and creates a GitHub release. The `publish` workflow then builds, zips `dist/`, attaches the zip to the release, and uploads it to the Chrome Web Store.
+
+Required GitHub secrets for the Web Store upload (Settings → Secrets and variables → Actions):
+
+| Secret | Where to get it |
+| ------ | --------------- |
+| `CHROME_EXTENSION_ID` | Chrome Web Store Developer Dashboard → item URL |
+| `CHROME_CLIENT_ID` | Google Cloud OAuth client (Web Store Publish API) |
+| `CHROME_CLIENT_SECRET` | same OAuth client |
+| `CHROME_REFRESH_TOKEN` | one-time OAuth flow with the Publish API scope |
+
+To produce a zip locally for sideloading: `pnpm build && pnpm zip` → `release/docnav-<version>.zip`.
+
 ## Roadmap
 
 - [ ] Cross-page search ("recent docs" full-text, not just titles)

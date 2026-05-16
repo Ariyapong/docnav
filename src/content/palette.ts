@@ -7,6 +7,7 @@ interface Item {
   label: string;
   meta?: string;
   level?: number;
+  isOpen?: boolean;
   onPick: () => void;
 }
 
@@ -17,10 +18,19 @@ interface Scored {
 }
 
 interface PaletteApi {
-  open: (headings: Heading[], recents: RecentPage[]) => void;
+  open: (headings: Heading[], recents: RecentPage[], openUrls?: Set<string>) => void;
   close: () => void;
-  toggle: (headings: Heading[], recents: RecentPage[]) => void;
+  toggle: (headings: Heading[], recents: RecentPage[], openUrls?: Set<string>) => void;
   isOpen: () => boolean;
+}
+
+function normalizeForCompare(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    return u.origin + u.pathname + u.search;
+  } catch {
+    return null;
+  }
 }
 
 export function createPalette(root: ShadowRoot): PaletteApi {
@@ -31,7 +41,11 @@ export function createPalette(root: ShadowRoot): PaletteApi {
   let visible: Scored[] = [];
   let selectedIndex = 0;
 
-  function buildItems(headings: Heading[], recents: RecentPage[]): Item[] {
+  function buildItems(
+    headings: Heading[],
+    recents: RecentPage[],
+    openUrls: Set<string>,
+  ): Item[] {
     const out: Item[] = headings.map((h) => ({
       kind: "heading",
       label: h.text,
@@ -39,10 +53,12 @@ export function createPalette(root: ShadowRoot): PaletteApi {
       onPick: () => jumpTo(h),
     }));
     for (const r of recents.slice(0, 8)) {
+      const normalized = normalizeForCompare(r.url);
       out.push({
         kind: "recent",
         label: r.title || pathLabel(r.url),
         meta: pathLabel(r.url),
+        isOpen: normalized !== null && openUrls.has(normalized),
         onPick: () => {
           void chrome.runtime.sendMessage({ type: "open-recent", url: r.url });
         },
@@ -117,6 +133,13 @@ export function createPalette(root: ShadowRoot): PaletteApi {
       text.appendChild(highlight(s.item.label, s.indices));
       li.appendChild(text);
 
+      if (s.item.isOpen) {
+        const badge = document.createElement("span");
+        badge.className = "palette-item-badge";
+        badge.textContent = "open";
+        li.appendChild(badge);
+      }
+
       if (s.item.meta) {
         const meta = document.createElement("span");
         meta.className = "palette-item-meta";
@@ -181,9 +204,9 @@ export function createPalette(root: ShadowRoot): PaletteApi {
     }
   }
 
-  function open(headings: Heading[], recents: RecentPage[]) {
+  function open(headings: Heading[], recents: RecentPage[], openUrls?: Set<string>) {
     if (backdrop) close();
-    items = buildItems(headings, recents);
+    items = buildItems(headings, recents, openUrls ?? new Set());
     visible = score("");
     selectedIndex = 0;
 
@@ -244,9 +267,9 @@ export function createPalette(root: ShadowRoot): PaletteApi {
     return backdrop !== null;
   }
 
-  function toggle(headings: Heading[], recents: RecentPage[]) {
+  function toggle(headings: Heading[], recents: RecentPage[], openUrls?: Set<string>) {
     if (isOpen()) close();
-    else open(headings, recents);
+    else open(headings, recents, openUrls);
   }
 
   return { open, close, toggle, isOpen };

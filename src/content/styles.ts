@@ -167,6 +167,17 @@ export const SHADOW_CSS = `
   direction: rtl;
   text-align: right;
 }
+.palette-item-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
 .palette-empty {
   padding: 28px 16px;
   text-align: center;

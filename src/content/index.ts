@@ -126,8 +126,14 @@ import type { RuntimeMessage, ThemePref } from "../types";
   async function openPalette() {
     if (!isExtensionAlive()) return;
     const here = urlWithoutHash();
-    const recents = await getRecent().catch(() => []);
-    palette.open(headings, recents.filter((r) => r.url !== here));
+    const [recents, openUrls] = await Promise.all([
+      getRecent().catch(() => []),
+      chrome.runtime
+        .sendMessage({ type: "list-open-tab-urls" })
+        .then((r: { urls?: string[] } | undefined) => new Set(r?.urls ?? []))
+        .catch(() => new Set<string>()),
+    ]);
+    palette.open(headings, recents.filter((r) => r.url !== here), openUrls);
   }
 
   // Local hotkey fallback. The browser-level command (chrome.commands) goes

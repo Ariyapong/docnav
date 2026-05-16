@@ -24,4 +24,5 @@ export type RuntimeMessage =
   | { type: "open-palette" }
   | { type: "toggle-outline" }
   | { type: "page-indexed"; page: RecentPage }
-  | { type: "open-recent"; url: string };
+  | { type: "open-recent"; url: string }
+  | { type: "list-open-tab-urls" };

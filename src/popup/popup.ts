@@ -30,10 +30,30 @@ function fmtAgo(ts: number): string {
   return `${d}d ago`;
 }
 
+function normalizeForCompare(raw: string): string | null {
+  try {
+    const u = new URL(raw);
+    return u.origin + u.pathname + u.search;
+  } catch {
+    return null;
+  }
+}
+
+async function getOpenTabUrls(): Promise<Set<string>> {
+  const tabs = await chrome.tabs.query({});
+  const out = new Set<string>();
+  for (const t of tabs) {
+    if (!t.url) continue;
+    const n = normalizeForCompare(t.url);
+    if (n) out.add(n);
+  }
+  return out;
+}
+
 async function renderRecent() {
   const list = document.getElementById("recent-list") as HTMLUListElement;
   list.innerHTML = "";
-  const recents = await getRecent();
+  const [recents, openUrls] = await Promise.all([getRecent(), getOpenTabUrls()]);
   if (recents.length === 0) {
     const empty = document.createElement("li");
     empty.className = "recent-empty";
@@ -48,6 +68,13 @@ async function renderRecent() {
     const t = document.createElement("div");
     t.className = "recent-title";
     t.textContent = r.title || pathLabel(r.url);
+    const normalized = normalizeForCompare(r.url);
+    if (normalized && openUrls.has(normalized)) {
+      const badge = document.createElement("span");
+      badge.className = "recent-badge";
+      badge.textContent = "open";
+      t.appendChild(badge);
+    }
     const meta = document.createElement("div");
     meta.className = "recent-meta";
     meta.textContent = `${pathLabel(r.url)} · ${fmtAgo(r.visitedAt)}`;

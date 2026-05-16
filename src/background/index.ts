@@ -1,13 +1,29 @@
 import type { RuntimeMessage } from "../types";
 
-function sameLocation(a: string, b: string): boolean {
+function normalizeUrl(raw: string): string | null {
   try {
-    const ua = new URL(a);
-    const ub = new URL(b);
-    return ua.host === ub.host && ua.pathname === ub.pathname && ua.search === ub.search;
+    const u = new URL(raw);
+    return u.origin + u.pathname + u.search;
   } catch {
-    return false;
+    return null;
   }
+}
+
+function sameLocation(a: string, b: string): boolean {
+  const na = normalizeUrl(a);
+  const nb = normalizeUrl(b);
+  return na !== null && na === nb;
+}
+
+async function listOpenTabUrls(): Promise<string[]> {
+  const tabs = await chrome.tabs.query({});
+  const out: string[] = [];
+  for (const t of tabs) {
+    if (!t.url) continue;
+    const n = normalizeUrl(t.url);
+    if (n) out.push(n);
+  }
+  return out;
 }
 
 async function openOrFocusRecent(url: string): Promise<void> {
@@ -45,6 +61,10 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResp
   if (message.type === "open-recent") {
     void openOrFocusRecent(message.url).then(() => sendResponse({ ok: true }));
     return true; // keep the channel open for the async response
+  }
+  if (message.type === "list-open-tab-urls") {
+    void listOpenTabUrls().then((urls) => sendResponse({ urls }));
+    return true;
   }
   return false;
 });

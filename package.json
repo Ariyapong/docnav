@@ -1,6 +1,6 @@
 {
   "name": "docnav",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Cmd+K command palette and sticky outline for any documentation site.",
   "private": true,
   "type": "module",

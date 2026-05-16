@@ -50,6 +50,42 @@ import type { RuntimeMessage, ThemePref } from "../types";
 
   let headings = extractHeadings();
 
+  // The URL we last wrote to Recent (sans hash). Used to avoid spamming
+  // recordVisit when the same page mutates or the user just changes anchor.
+  let lastRecordedUrl: string | null = null;
+
+  // When the extension is reloaded, content scripts already running in open
+  // tabs get orphaned — chrome.runtime.id throws and chrome.storage goes
+  // undefined. Detect that so we stop trying to write into a dead channel.
+  function isExtensionAlive(): boolean {
+    try {
+      return !!chrome.runtime?.id;
+    } catch {
+      return false;
+    }
+  }
+
+  function urlWithoutHash(): string {
+    return location.origin + location.pathname + location.search;
+  }
+
+  function maybeRecord() {
+    if (!isExtensionAlive()) return;
+    if (headings.length < 2) return;
+    const url = urlWithoutHash();
+    if (url === lastRecordedUrl) return;
+    lastRecordedUrl = url;
+    recordVisit({
+      url,
+      title: document.title || location.pathname,
+      host: location.host,
+      visitedAt: Date.now(),
+      headingCount: headings.length,
+    }).catch(() => {
+      // Context was invalidated between the check and the call. Drop.
+    });
+  }
+
   // Re-extract on DOM mutations, but throttled — most doc sites lazy-load.
   let scheduled = false;
   const observer = new MutationObserver(() => {
@@ -59,24 +95,39 @@ import type { RuntimeMessage, ThemePref } from "../types";
       scheduled = false;
       headings = extractHeadings();
       outline.refresh(headings);
+      maybeRecord();
     }, 400);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // Log this visit if the page has any headings worth indexing.
-  if (headings.length >= 2) {
-    void recordVisit({
-      url: location.href,
-      title: document.title || location.pathname,
-      host,
-      visitedAt: Date.now(),
-      headingCount: headings.length,
-    });
+  // Catch SPA navigations (pushState/replaceState/popstate). Doc sites built
+  // on Next, Docusaurus, etc. swap content without a full reload, so the
+  // initial bootstrap's URL goes stale within seconds.
+  function onUrlChange() {
+    // Headings usually re-render after the URL flip; the MutationObserver
+    // above will catch the new content and call maybeRecord. We still try
+    // here in case the page didn't mutate (anchor-only links).
+    maybeRecord();
+  }
+  window.addEventListener("popstate", onUrlChange);
+  for (const method of ["pushState", "replaceState"] as const) {
+    const orig = history[method];
+    history[method] = function (this: History, ...args: Parameters<typeof orig>) {
+      const ret = orig.apply(this, args);
+      onUrlChange();
+      return ret;
+    } as typeof orig;
   }
 
+  // Initial record (may be skipped if headings haven't arrived yet — the
+  // observer will pick it up once they do).
+  maybeRecord();
+
   async function openPalette() {
-    const recents = (await getRecent()).filter((r) => r.url !== location.href);
-    palette.open(headings, recents);
+    if (!isExtensionAlive()) return;
+    const here = urlWithoutHash();
+    const recents = await getRecent().catch(() => []);
+    palette.open(headings, recents.filter((r) => r.url !== here));
   }
 
   // Local hotkey fallback. The browser-level command (chrome.commands) goes

@@ -53,7 +53,8 @@ async function renderRecent() {
     meta.textContent = `${pathLabel(r.url)} · ${fmtAgo(r.visitedAt)}`;
     li.append(t, meta);
     li.addEventListener("click", () => {
-      void chrome.tabs.create({ url: r.url });
+      void chrome.runtime.sendMessage({ type: "open-recent", url: r.url });
+      window.close();
     });
     list.appendChild(li);
   }

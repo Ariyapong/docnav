@@ -31,7 +31,7 @@ export default defineManifest({
       run_at: "document_idle",
     },
   ],
-  permissions: ["storage", "activeTab"],
+  permissions: ["storage", "activeTab", "tabs"],
   commands: {
     "open-palette": {
       suggested_key: { default: "Ctrl+Shift+K", mac: "Command+Shift+K" },

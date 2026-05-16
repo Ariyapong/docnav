@@ -23,4 +23,5 @@ export type ThemePref = "system" | "light" | "dark";
 export type RuntimeMessage =
   | { type: "open-palette" }
   | { type: "toggle-outline" }
-  | { type: "page-indexed"; page: RecentPage };
+  | { type: "page-indexed"; page: RecentPage }
+  | { type: "open-recent"; url: string };

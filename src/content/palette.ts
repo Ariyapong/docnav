@@ -44,7 +44,7 @@ export function createPalette(root: ShadowRoot): PaletteApi {
         label: r.title || pathLabel(r.url),
         meta: pathLabel(r.url),
         onPick: () => {
-          window.location.href = r.url;
+          void chrome.runtime.sendMessage({ type: "open-recent", url: r.url });
         },
       });
     }

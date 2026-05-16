@@ -9,14 +9,18 @@
     "build": "pnpm gen:icons && tsc --noEmit && vite build",
     "type-check": "tsc --noEmit",
     "gen:icons": "node scripts/build-icons.mjs",
-    "zip": "rm -rf release && mkdir -p release && cd dist && zip -r \"../release/docnav-$npm_package_version.zip\" . -x '.vite/*' '.DS_Store'"
+    "zip": "rm -rf release && mkdir -p release && cd dist && zip -r \"../release/docnav-$npm_package_version.zip\" . -x '.vite/*' '.DS_Store'",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.28",
     "@types/chrome": "^0.0.287",
+    "happy-dom": "^20.9.0",
     "sharp": "^0.33.5",
     "typescript": "^5.7.2",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "vitest": "^4.1.6"
   },
   "packageManager": "pnpm@10.24.0",
   "pnpm": {
